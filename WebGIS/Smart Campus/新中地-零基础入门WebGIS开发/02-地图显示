@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地图显示</title>
+    <!-- 1. 引入资源 -->
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode:'614d810edcbc65ed73615e5ff909f3e0',
+        }
+</script>
+<script type="text/javascript" 
+src="https://webapi.amap.com/maps?v=2.0&key=7e1d435139cb1613aa0af819299bf3b9"></script> 
+    <!-- 3. 设置地图样式 -->
+    <style>
+        #container{
+            width: 300px;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 2. 创建地图容器 -->
+    <!-- emmit: div#container -->
+    <div id="container"></div>
+    <!-- 4. 加载地图 -->
+    <script>
+        //定义一个变量，保存一个对象
+        var map = new AMap.Map('container') 
+    </script>
+</body>
+</html>
