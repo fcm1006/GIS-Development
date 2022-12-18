@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <title>Document</title>
+
+    <link
+      rel="stylesheet"
+      href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"
+    />
+    <link rel="stylesheet" href="./css/index.css" />
+    <script type="text/javascript">
+      window._AMapSecurityConfig = {
+        securityJsCode:'614d810edcbc65ed73615e5ff909f3e0',
+        }
+    </script>
+    <script type="text/javascript" 
+    src="https://webapi.amap.com/maps?v=2.0&key=7e1d435139cb1613aa0af819299bf3b9"
+    ></script>
+    <script src="./js/store.js"></script>
+  </head>
+
+  <body>
+    <div id="container"></div>
+    <div class="info">点击地图标热门地点,点击地图可以打卡</div>
+    <div class="input-card" style="width: 10rem">
+      <h4>推荐浏览路线</h4>
+      <div class="input-item">
+        <button class="btn" onclick="startAnimation()">开始动画</button>
+      </div>
+    </div>
+    <script>
+      var map = new AMap.Map("container", {
+        center: [114.402672, 30.518937],
+        zoom: 16,
+        viewMode: "3D",
+        pitch: 45,
+      });
+      AMap.plugin(
+        ["AMap.ToolBar", "AMap.Scale", "AMap.ControlBar"],
+        function () {
+          map.addControl(
+            new AMap.ToolBar({
+              position: {
+                top: "80px",
+                right: "40px",
+              },
+            })
+          );
+          map.addControl(new AMap.Scale());
+          map.addControl(new AMap.ControlBar());
+        }
+      );
+      AMap.plugin(["AMap.GeoJSON"], function () {});
+      //定义一个全局变量，保存geojson
+      var geojson = new AMap.GeoJSON({
+        geoJSON: null,
+      });
+      //如果存在数据，那么导入数据
+      if (JSON.stringify(getData()) != "[]") {
+        //导入数据
+        geojson.importData(getData());
+        //恢复旧数据的点击事件
+        geojson.eachOverlay(function (item) {
+          item.on("click", function (e) {
+            // console.log("e.lnglat", "旧的数据点击了");
+            //让点击的marker对象的click属性+1
+            var ext = item.getExtData();
+            var click = ++ext._geoJsonProperties.click;
+            // console.log("点击了" + click + "次");
+            //使用消息提示框显示
+            var infowindow = new AMap.InfoWindow({
+              anchor: "top-center",
+              content: `<div>打卡了${click}次</div>`,
+            });
+            //显示信息窗口
+            infowindow.open(map, item.getPosition());
+            saveData(geojson.toGeoJSON());
+          });
+        });
+      }
+
+      map.add(geojson);
+      //监听地图的点击事件
+      map.on("click", function (e) {
+        var marker = new AMap.Marker({
+          position: e.lnglat,
+          extData: {
+            _geoJsonProperties: {
+              gid: geojson.getOverlays().length + 1,
+              click: 0,
+            },
+          },
+        });
+        //使用覆盖物的点击事件
+        marker.on("click", function (e) {
+          // console.log("e.lnglat", "点击了");
+          //让点击的marker对象的click属性+1
+          var ext = marker.getExtData();
+          var click = ++ext._geoJsonProperties.click;
+          // console.log("点击了" + click + "次");
+          //使用消息提示框显示
+          var infowindow = new AMap.InfoWindow({
+            anchor: "top-center",
+            content: `<div>打卡了${click}次</div>`,
+          });
+          //显示信息窗口
+          infowindow.open(map, marker.getPosition());
+          saveData(geojson.toGeoJSON());
+        });
+        //通过geojson对象管理覆盖物
+        geojson.addOverlay(marker);
+        // console.log(geojson)
+        //保存数据(将geojson对象转换成标准的GeoJSON格式对象)
+        saveData(geojson.toGeoJSON());
+      });
+      function startAnimation() {
+        AMap.plugin("AMap.Driving", function () {
+          var driving = new AMap.Driving({
+            map: map,
+            policy: AMap.DrivingPolicy.LEAST_TIME,
+          });
+          //设置起点和终点
+          var start = new AMap.LngLat(114.400984, 30.518653); //东门
+          var end = new AMap.LngLat(114.404755, 30.523851); //东门
+          driving.search(start, end, function (status, result) {
+            if (status == "complete") {
+              console.log("ok");
+            } else {
+              console.log("err");
+            }
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
